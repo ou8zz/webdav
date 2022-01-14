@@ -1,0 +1,7 @@
+.idea
+.vscode
+vendor
+casper_logs
+.DS_Store
+current.pid
+app
