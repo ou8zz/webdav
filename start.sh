@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 export LISTEN=:8081
 export ROOT=/Users/ole/Downloads
 export PREFIX=/
