@@ -74,6 +74,7 @@ func main() {
 
   go func() {
     http.HandleFunc("/api/list", func(writer http.ResponseWriter, request *http.Request) {
+      request.Header.Set("Content-Type", "application/json; charset=utf-8")
       userRoot := root
       path := request.FormValue("path")
       if path != "" {
@@ -108,10 +109,6 @@ func main() {
       if err != nil {
         fmt.Printf("header:%v, error:%v \n", header, err)
       }
-
-
-
-      fmt.Printf("filename:%s \n", header.Filename)
       fileName := fmt.Sprintf("%s/%s", userRoot, header.Filename)
       err = ioutil.WriteFile(fileName, fileBytes, 0777)
       if err != nil {

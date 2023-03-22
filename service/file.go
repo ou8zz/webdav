@@ -19,7 +19,9 @@ type (
 func GetFiles(root string) []*Item {
   result := make([]*Item, 0)
   f, err := ioutil.ReadDir(root)
-  fmt.Printf("files %+v, err:%v \n", f, err)
+  if err != nil {
+    fmt.Printf("GetFiles files %+v, err:%v \n", f, err)
+  }
   for _, v := range f {
     vo := &Item{}
     vo.Name = v.Name()
@@ -27,7 +29,6 @@ func GetFiles(root string) []*Item {
     vo.IsDir = v.IsDir()
     vo.ModTime = v.ModTime().Format(layoutDateTime)
     result = append(result, vo)
-    fmt.Printf("file: %s, %s, %s, %d \n", v.Name(), v.Mode().String(), v.ModTime().String(), v.Size())
   }
   return result
 }
