@@ -74,7 +74,7 @@ func main() {
 
   go func() {
     http.HandleFunc("/api/list", func(writer http.ResponseWriter, request *http.Request) {
-      request.Header.Set("Content-Type", "application/json; charset=utf-8")
+      writer.Header().Set("Content-Type", "application/json; charset=utf-8")
       userRoot := root
       path := request.FormValue("path")
       if path != "" {
