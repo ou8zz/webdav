@@ -73,54 +73,60 @@ func main() {
   })
 
   go func() {
-    http.HandleFunc("/api/list", func(writer http.ResponseWriter, request *http.Request) {
-      writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-      userRoot := root
-      path := request.FormValue("path")
-      if path != "" {
-        userRoot = fmt.Sprintf("%s/%s", userRoot, path)
-      }
-      dataList := service.GetFiles(userRoot)
-      bytes, err := json.Marshal(dataList)
-      if err != nil {
-        return
-      }
-      writer.Write(bytes)
-    })
-    http.HandleFunc("/api/upload", func(writer http.ResponseWriter, request *http.Request) {
-      resString := "上传成功"
-      userRoot := root
-      path := request.FormValue("path")
-      if path != "" {
-        userRoot = fmt.Sprintf("%s/%s", userRoot, path)
-      }
-      request.ParseMultipartForm(32 << 20)
-      file, header, err := request.FormFile("file")
-      if err != nil {
-        fmt.Printf("header:%v, error:%v \n", header, err)
-        return
-      }
-      defer file.Close()
-      if file == nil {
-        writer.Write(bytes.NewBufferString("文件为空").Bytes())
-        return
-      }
-      fileBytes, err := ioutil.ReadAll(file)
-      if err != nil {
-        fmt.Printf("header:%v, error:%v \n", header, err)
-      }
-      fileName := fmt.Sprintf("%s/%s", userRoot, header.Filename)
-      err = ioutil.WriteFile(fileName, fileBytes, 0777)
-      if err != nil {
-        fmt.Printf("header:%v, error:%v \n", header, err)
-      }
-      writer.Write(bytes.NewBufferString(resString).Bytes())
-    })
-    http.ListenAndServe("0.0.0.0:81", nil).Error() // 启动默认的 http 服务，可以使用自带的路由
+    http.HandleFunc("/api/list", getItems)
+    http.HandleFunc("/api/upload", uploadItem)
+    if err := http.ListenAndServe("0.0.0.0:81", nil); err != nil {
+      log.Fatal(err)
+    }
   }()
 
   fmt.Println("start port", listen)
   if err := http.ListenAndServe(listen, &mux); err != nil {
     log.Fatal(err)
   }
+}
+
+func getItems(writer http.ResponseWriter, request *http.Request) {
+  writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+  userRoot := os.Getenv("ROOT")
+  path := request.FormValue("path")
+  if path != "" {
+    userRoot = fmt.Sprintf("%s/%s", userRoot, path)
+  }
+  dataList := service.GetFiles(userRoot)
+  bytes, err := json.Marshal(dataList)
+  if err != nil {
+    return
+  }
+  writer.Write(bytes)
+}
+
+func uploadItem(writer http.ResponseWriter, request *http.Request) {
+  userRoot := os.Getenv("ROOT")
+  resString := "上传成功"
+  path := request.FormValue("path")
+  if path != "" {
+    userRoot = fmt.Sprintf("%s/%s", userRoot, path)
+  }
+  request.ParseMultipartForm(32 << 20)
+  file, header, err := request.FormFile("file")
+  if err != nil {
+    fmt.Printf("header:%v, error:%v \n", header, err)
+    return
+  }
+  defer file.Close()
+  if file == nil {
+    writer.Write(bytes.NewBufferString("文件为空").Bytes())
+    return
+  }
+  fileBytes, err := ioutil.ReadAll(file)
+  if err != nil {
+    fmt.Printf("header:%v, error:%v \n", header, err)
+  }
+  fileName := fmt.Sprintf("%s/%s", userRoot, header.Filename)
+  err = ioutil.WriteFile(fileName, fileBytes, 0777)
+  if err != nil {
+    fmt.Printf("header:%v, error:%v \n", header, err)
+  }
+  writer.Write(bytes.NewBufferString(resString).Bytes())
 }
